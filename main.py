@@ -66,8 +66,12 @@ class CaloriesCalculator(Calculator):
         # Лучше подсчет оставшихся калорий или денег вынести в отдельный метод родительского класса.
         x = self.limit - self.get_today_stats()
         if x > 0:
+            # pep-8 не рекомендует использовать бэкслэши для переноса строк. 
+            # https://tirinox.ru/new-line/
             return f'Сегодня можно съесть что-нибудь' \
                    f' ещё, но с общей калорийностью не более {x} кКал'
+        # Можно обойтись без лишнего else :)
+        # https://medium.com/lemon-code/guard-clauses-3bc0cd96a2d3
         else:
             return('Хватит есть!')
 
@@ -80,6 +84,8 @@ class CashCalculator(Calculator):
                                 USD_RATE=USD_RATE, EURO_RATE=EURO_RATE):
         currency_type = currency
         cash_remained = self.limit - self.get_today_stats()
+        # Попробуй для выбора валюты использовать словарь
+        # Это избавит от лишних if/else
         if currency == 'usd':
             cash_remained /= USD_RATE
             currency_type = 'USD'
@@ -87,19 +93,37 @@ class CashCalculator(Calculator):
             cash_remained /= EURO_RATE
             currency_type = 'Euro'
         elif currency_type == 'rub':
+            # константу лучше вынести из кода (RUB_RATE)
             cash_remained == 1.00
             currency_type = 'руб'
         if cash_remained > 0:
             return (
+                # Это строковой литерал, который лучше вынести в константу.
+                # Выносить нужно вместе с конструкциями '...{}...' (если они есть), 
+                # тогда вычисленные значения сможем подставить в строку при помощи '.format'
+                # Это нужно для поддерживаемости кода. Например, если нужно будет
+                # поменять тексты или форматы в одном месте.
+                # Код может и в несколько тысяч строк, в которых, например, 50 литералов и 
+                # они на русском, а завтра будет задача выкатить версию на английском.
+                # Пример:
+                # CASH_BALANCE = 'На сегодня осталось {balance} {currency_name}'
+                # ......
+                # if today_remained > 0: 
+                #            return CASH_BALANCE.format(balance=cash_remained_str, 
+                #                                       currency_name=currency_name)
                 f'На сегодня осталось {round(cash_remained, 2)} '
                 f'{currency_type}'
             )
         elif cash_remained == 0:
+            # Также лучше вынести в константу.
             return 'Денег нет, держись'
+        # Лучше использовать else, так как осталось одно условие.
         elif cash_remained < 0:
             return 'Денег нет, держись:' \
                    ' твой долг - {0:.2f} {1}'.format(-cash_remained,
                                                      currency_type)
-
+    
+    # Нет смысла определять этот метод, так как он уже есть в родительском классе
+    # и при наследовании автоматически имеется у дочернего класса.
     def get_week_stats(self):
         super().get_week_stats()
